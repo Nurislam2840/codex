@@ -9,8 +9,31 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/((?!assets|icon-|manifest\\.json|sw\\.js|logo\\.svg|apple-touch-icon|assetlinks\\.json|robots\\.txt).*)",
+      "source": "/((?!assets|\\.well-known|icon-|manifest\\.json|sw\\.js|logo\\.svg|apple-touch-icon|robots\\.txt).*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
+        { "key": "Service-Worker-Allowed", "value": "/" }
+      ]
+    },
+    {
+      "source": "/manifest.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-cache" },
+        { "key": "Content-Type", "value": "application/manifest+json" }
+      ]
+    },
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json" },
+        { "key": "Cache-Control", "value": "no-cache" }
+      ]
     }
   ]
 }
