@@ -11,7 +11,7 @@ import {
   FiClipboard, FiTerminal, FiEdit2, FiAlignLeft, FiLink,
   FiWifiOff, FiShare2, FiClock, FiCommand, FiCheck, FiMaximize2,
   FiMinimize2, FiMonitor, FiSmartphone, FiTablet,
-  FiZap, FiFileText, FiTrash2
+  FiZap, FiFileText, FiTrash2, FiMoreVertical, FiInfo
 } from 'react-icons/fi';
 import './App.css';
 
@@ -29,11 +29,6 @@ const getFileIcon = (name) => {
   if (n.endsWith('.py')) return '🐍';
   if (n.endsWith('.md')) return '📘';
   if (n.endsWith('.txt')) return '📄';
-  if (n.endsWith('.c') || n.endsWith('.cpp') || n.endsWith('.h')) return '⚙️';
-  if (n.endsWith('.java')) return '☕';
-  if (n.endsWith('.php')) return '🐘';
-  if (n.endsWith('.sql')) return '🗄️';
-  if (n.endsWith('.xml')) return '📜';
   return '📄';
 };
 
@@ -55,10 +50,10 @@ const getLanguage = (name) => {
 
 const logColor = (level) => {
   switch (level) {
-    case 'error': return '#ef4444';
-    case 'warn': return '#f59e0b';
-    case 'info': return '#38bdf8';
-    default: return '#4ade80';
+    case 'error': return '#F85149';
+    case 'warn': return '#D29922';
+    case 'info': return '#58A6FF';
+    default: return '#3FB950';
   }
 };
 
@@ -95,6 +90,7 @@ function App() {
   const [showAiPlaceholder, setShowAiPlaceholder] = useState(false);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [showConsole, setShowConsole] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
 
   const [alertConfig, setAlertConfig] = useState({ visible: false, type: 'success', title: '', message: '', isPrompt: false, inputValue: '', onConfirm: null });
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, hasSelection: false, fileId: null, selectionText: '' });
@@ -214,8 +210,8 @@ function App() {
         const map = {}; savedFiles.forEach(f => map[f.id] = f.content); setSavedFilesMap(map);
       } else {
         const defaults = [
-          { id: '1', name: 'index.html', language: 'html', content: '<!DOCTYPE html>\n<html>\n<head>\n  <title>My App</title>\n</head>\n<body>\n  <h1 style="color: #38bdf8;">Hello CodeX!</h1>\n  <button onclick="testLog()">Click Me</button>\n</body>\n</html>' },
-          { id: '2', name: 'style.css', language: 'css', content: 'body {\n    background: #0f172a;\n    color: white;\n    font-family: "Outfit", sans-serif;\n    padding: 20px;\n}' },
+          { id: '1', name: 'index.html', language: 'html', content: '<!DOCTYPE html>\n<html>\n<head>\n  <title>My App</title>\n</head>\n<body>\n  <h1 style="color: #58A6FF;">Hello CodeX!</h1>\n  <button onclick="testLog()">Click Me</button>\n</body>\n</html>' },
+          { id: '2', name: 'style.css', language: 'css', content: 'body {\n    background: #0D1117;\n    color: #C9D1D9;\n    font-family: "Inter", sans-serif;\n    padding: 20px;\n}' },
           { id: '3', name: 'app.js', language: 'javascript', content: 'console.log("App Running...");\n\nfunction testLog() {\n    console.log("Button clicked at: " + new Date().toLocaleTimeString());\n}' }
         ];
         setFiles(defaults); setActiveFileId('1');
@@ -434,18 +430,40 @@ function App() {
 
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor; monacoRef.current = monaco;
+    
+    // প্রফেশনাল সিনট্যাক্স কালার থিম (VS Code এর মতো)
     monaco.editor.defineTheme('tech-dark', {
       base: 'vs-dark', inherit: true,
       rules: [
-        { token: '', foreground: 'E2E8F0' }, { token: 'identifier', foreground: 'E2E8F0' }, { token: 'delimiter', foreground: '94A3B8' }, { token: 'comment', foreground: '64748B', fontStyle: 'italic' },
-        { token: 'tag', foreground: 'F472B6' }, { token: 'metatag', foreground: 'F472B6' }, { token: 'attribute.name', foreground: 'FBBF24' }, { token: 'attribute.value', foreground: '34D399' }, { token: 'delimiter.html', foreground: '38BDF8' },
-        { token: 'attribute.name.css', foreground: 'F472B6' }, { token: 'attribute.value.css', foreground: '34D399' }, { token: 'attribute.value.number.css', foreground: 'FB923C' }, { token: 'attribute.value.unit.css', foreground: 'FB923C' }, { token: 'attribute.value.hex.css', foreground: '38BDF8' }, { token: 'tag.css', foreground: 'A78BFA' },
-        { token: 'keyword', foreground: 'A78BFA' }, { token: 'keyword.control', foreground: 'A78BFA' }, { token: 'function', foreground: '60A5FA' }, { token: 'variable', foreground: '38BDF8' }, { token: 'variable.predefined', foreground: '38BDF8' }, { token: 'string', foreground: '34D399' }, { token: 'number', foreground: 'FB923C' }, { token: 'type', foreground: 'FBBF24' }, { token: 'class', foreground: 'FBBF24' }, { token: 'operator', foreground: '38BDF8' },
+        { token: '', foreground: 'C9D1D9' }, // Default text
+        { token: 'comment', foreground: '8B949E', fontStyle: 'italic' }, // Comments (Gray)
+        { token: 'keyword', foreground: 'FF7B72' }, // Keywords (Red/Pink)
+        { token: 'keyword.control', foreground: 'FF7B72' },
+        { token: 'string', foreground: 'A5D6FF' }, // Strings (Light Blue)
+        { token: 'number', foreground: '79C0FF' }, // Numbers (Blue)
+        { token: 'function', foreground: 'D2A8FF' }, // Functions (Purple)
+        { token: 'variable', foreground: 'FFA657' }, // Variables (Orange)
+        { token: 'type', foreground: '7EE787' }, // Types (Green)
+        { token: 'class', foreground: '7EE787' }, 
+        { token: 'tag', foreground: '7EE787' }, // HTML Tags (Green)
+        { token: 'attribute.name', foreground: '79C0FF' }, // HTML Attributes (Blue)
+        { token: 'attribute.value', foreground: 'A5D6FF' }, // HTML Attribute values (Light Blue)
+        { token: 'delimiter', foreground: 'C9D1D9' },
+        { token: 'operator', foreground: 'FF7B72' },
       ],
       colors: {
-        'editor.background': '#0B1120', 'editor.foreground': '#E2E8F0', 'editorLineNumber.foreground': '#475569', 'editorLineNumber.activeForeground': '#38BDF8', 'editor.selectionBackground': '#334155', 'editor.inactiveSelectionBackground': '#1E293B', 'editor.lineHighlightBackground': '#1E293B', 'editor.lineHighlightBorder': '#334155', 'editorCursor.foreground': '#38BDF8', 'editorIndentGuide.background': '#1E293B', 'editorIndentGuide.activeBackground': '#334155', 'editorBracketMatch.background': '#334155', 'editorBracketMatch.border': '#38BDF8',
+        'editor.background': '#0D1117',
+        'editor.foreground': '#C9D1D9',
+        'editorLineNumber.foreground': '#484F58',
+        'editorLineNumber.activeForeground': '#C9D1D9',
+        'editorCursor.foreground': '#58A6FF',
+        'editor.selectionBackground': '#264F78',
+        'editor.lineHighlightBackground': '#161B22',
+        'editorIndentGuide.background': '#21262D',
+        'editorIndentGuide.activeBackground': '#30363D',
       }
     });
+    
     editor.onDidChangeCursorPosition((e) => setCursorPos({ line: e.position.lineNumber, col: e.position.column }));
     editor.onDidChangeCursorSelection((e) => {
       const model = editor.getModel(); if (!model) return;
@@ -529,13 +547,10 @@ function App() {
     { id: 'import-clip', label: 'Import from Clipboard', icon: <FiClipboard />, action: handleImportFromClipboard },
     { id: 'preview', label: 'Toggle Preview', icon: <FiPlay />, action: () => { setShowPreview(p => !p); setConsoleLogs([]); } },
     { id: 'theme', label: 'Toggle Theme', icon: <FiSun />, action: () => setTheme(t => t === 'tech-dark' ? 'vs-light' : 'tech-dark') },
-    { id: 'settings', label: 'Open Settings', icon: <FiSettings />, action: () => setShowSettings(true) },
-    { id: 'shortcuts', label: 'Show Shortcuts', icon: <FiCommand />, action: () => setShowShortcuts(true) },
     { id: 'zen', label: 'Toggle Zen Mode', icon: <FiMaximize2 />, action: handleZenToggle },
     { id: 'find', label: 'Find in File', icon: <FiSearch />, action: () => editorRef.current?.getAction('actions.find')?.run() },
     { id: 'undo', label: 'Undo', icon: <FiChevronsLeft />, action: () => { editorRef.current?.trigger('keyboard', 'undo'); keepFocus(); } },
     { id: 'redo', label: 'Redo', icon: <FiChevronsRight />, action: () => { editorRef.current?.trigger('keyboard', 'redo'); keepFocus(); } },
-    { id: 'ai', label: 'AI Assistant (Coming Soon)', icon: <FiZap />, action: () => setShowAiPlaceholder(true) },
   ], [activeFile, handleCreateNewFile, handleFormat, handleSaveToPhone]);
 
   const filteredCommands = useMemo(() => {
@@ -564,37 +579,51 @@ function App() {
   };
 
   return (
-    <div className={`app-container ${theme === 'vs-light' ? 'light-mode' : ''} ${zenMode ? 'zen-mode' : ''}`}>
+    <div className={`app-container ${zenMode ? 'zen-mode' : ''}`}>
+      
+      {/* Top Navigation Bar */}
       {!zenMode && (
         <header className="top-bar">
           <div className="logo">
-            <button className="menu-btn" onClick={() => setSidebarOpen(!sidebarOpen)} aria-label="Menu"><FiMenu size={20} /></button>
-            <div className="logo-brand"><FiCode size={20} className="logo-icon" /><h1>CodeX</h1></div>
-            {!online && <FiWifiOff size={14} style={{ color: '#ef4444' }} title="Offline" />}
+            <button className="icon-btn" onClick={() => setSidebarOpen(!sidebarOpen)}><FiMenu size={22} /></button>
+            <div className="logo-brand">
+              <FiCode size={20} className="logo-icon" />
+              <span>CodeX</span>
+            </div>
           </div>
           <div className="actions">
-            <button className="icon-btn bg-transparent" onClick={() => setShowCommandPalette(true)} title="Command Palette"><FiCommand size={18} /></button>
-            <button className="icon-btn bg-transparent" onClick={() => setTheme(theme === 'tech-dark' ? 'vs-light' : 'tech-dark')} title="Theme">{theme === 'tech-dark' ? <FiSun size={18} /> : <FiMoon size={18} />}</button>
-            <button className="icon-btn bg-transparent" onClick={() => setShowSettings(true)} title="Settings"><FiSettings size={18} /></button>
-            <button className="icon-btn bg-transparent" onClick={handleZenToggle} title="Zen Mode"><FiMaximize2 size={18} /></button>
-            <button className="icon-btn bg-transparent" onClick={() => { setShowPreview(!showPreview); setConsoleLogs([]); }} title="Preview"><FiPlay size={18} /></button>
-            <button className={`icon-btn ${justSaved ? 'saved' : ''}`} onClick={handleSaveToPhone} title="Save">{justSaved ? <FiCheck size={18} /> : <FiSave size={18} />}</button>
+            <button className="icon-btn" onClick={() => { setShowPreview(!showPreview); setConsoleLogs([]); }}><FiPlay size={20} /></button>
+            <button className={`icon-btn ${justSaved ? 'saved' : ''}`} onClick={handleSaveToPhone}>{justSaved ? <FiCheck size={20} /> : <FiSave size={20} />}</button>
+            <button className="icon-btn" onClick={() => setShowSettings(true)}><FiMoreVertical size={22} /></button>
           </div>
         </header>
       )}
-      {zenMode && <div className="zen-exit"><button onClick={handleZenToggle}><FiMinimize2 size={18} /> Exit Zen</button></div>}
+
+      {zenMode && (
+        <div className="zen-exit">
+          <button onClick={handleZenToggle}><FiMinimize2 size={18} /> Exit Zen</button>
+        </div>
+      )}
+
       <main className="main-content">
+        {/* Sidebar / Drawer */}
         {!zenMode && (
           <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-            <div className="sidebar-header"><span><FiFolder size={14} /> Explorer</span><button onClick={handleCreateNewFile} className="new-file-btn" aria-label="New File"><FiPlus size={16} /></button></div>
-            <div className="sidebar-search"><FiSearch size={14} /><input type="text" placeholder={searchMode === 'name' ? 'Search files...' : 'Search in files...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /><button className="search-mode-toggle" onClick={() => setSearchMode(m => m === 'name' ? 'content' : 'name')} title={searchMode === 'name' ? 'Search in content' : 'Search by name'}>{searchMode === 'name' ? '📄' : '🔍'}</button></div>
+            <div className="sidebar-header">
+              <span>Explorer</span>
+              <button onClick={handleCreateNewFile} className="icon-btn"><FiPlus size={18} /></button>
+            </div>
+            
+            <div className="sidebar-search">
+              <FiSearch size={16} color="#8B949E" />
+              <input type="text" placeholder="Search files..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+            </div>
+
             <div className="sidebar-actions">
-              <button onClick={() => fileInputRef.current.click()}><FiUpload size={14} /> Open from Phone</button>
-              <button onClick={handleImportFromUrl}><FiLink size={14} /> Import URL</button>
-              <button onClick={handleImportFromClipboard}><FiClipboard size={14} /> From Clipboard</button>
-              <button onClick={handleExportZip} className="export-btn"><FiDownloadCloud size={14} /> Export ZIP</button>
-              <button onClick={handleExportSingleHTML} className="export-btn"><FiFileText size={14} /> Export HTML</button>
-              <button onClick={handleShareUrl} className="share-btn"><FiShare2 size={14} /> Share Code</button>
+              <button onClick={() => fileInputRef.current.click()}><FiUpload size={16} /> Open from Device</button>
+              <button onClick={handleImportFromUrl}><FiLink size={16} /> Import URL</button>
+              <button onClick={handleExportZip}><FiDownloadCloud size={16} /> Export Project ZIP</button>
+              <button onClick={handleShareUrl}><FiShare2 size={16} /> Share Code URL</button>
               <input type="file" ref={fileInputRef} onChange={(e) => {
                 const file = e.target.files[0]; if (!file) return;
                 const reader = new FileReader();
@@ -606,71 +635,56 @@ function App() {
                 reader.readAsText(file); e.target.value = null;
               }} style={{ display: 'none' }} accept=".js,.jsx,.ts,.tsx,.html,.css,.json,.py,.md,.txt,.xml" />
             </div>
-            {searchMode === 'content' && searchResults.length > 0 && (
-              <div className="search-results">
-                <div className="search-results-header">{searchResults.length} result(s)</div>
-                {searchResults.map((r, i) => (
-                  <div key={i} className="search-result-item" onClick={() => {
-                    setActiveFileId(r.fileId); setSidebarOpen(false);
-                    setTimeout(() => { if (editorRef.current) { editorRef.current.revealLineInCenter(r.line); editorRef.current.setPosition({ lineNumber: r.line, column: 1 }); keepFocus(); } }, 100);
-                  }}><div className="sr-file">{r.fileName}:{r.line}</div><div className="sr-text">{r.text.slice(0, 60)}{r.text.length > 60 ? '...' : ''}</div></div>
-                ))}
-              </div>
-            )}
+
             <ul className="file-list">
               {filteredFiles.map(file => (
-                <li key={file.id} className={`${activeFileId === file.id ? 'active' : ''} ${draggedFileId === file.id ? 'dragging' : ''}`} onClick={() => { setActiveFileId(file.id); setSidebarOpen(false); }} draggable onDragStart={() => handleDragStart(file.id)} onDragOver={handleDragOver} onDrop={() => handleDrop(file.id)} onContextMenu={(e) => { e.preventDefault(); setContextMenu({ visible: true, x: e.clientX, y: e.clientY, hasSelection: false, fileId: file.id, selectionText: '' }); }} onTouchStart={(e) => {
-                  const timer = setTimeout(() => { setContextMenu({ visible: true, x: e.touches[0].clientX, y: e.touches[0].clientY, hasSelection: false, fileId: file.id, selectionText: '' }); }, 500);
-                  e.currentTarget.ontouchend = () => clearTimeout(timer); e.currentTarget.ontouchmove = () => clearTimeout(timer);
-                }}>
-                  <span className="drag-handle">⋮⋮</span><span className="file-icon">{getFileIcon(file.name)}</span><span className="file-name">{file.name}</span>
-                  <button className="rename-btn" onClick={(e) => { e.stopPropagation(); handleRenameFile(file.id); }} aria-label="Rename"><FiEdit2 size={12} /></button>
-                  <button className="close-tab-btn" onClick={(e) => handleDeleteFile(file.id, e)} aria-label="Close"><FiX size={14} /></button>
+                <li key={file.id} className={`${activeFileId === file.id ? 'active' : ''}`} onClick={() => { setActiveFileId(file.id); setSidebarOpen(false); }}>
+                  <span className="file-icon">{getFileIcon(file.name)}</span>
+                  <span className="file-name">{file.name}</span>
+                  <button className="icon-btn" onClick={(e) => { e.stopPropagation(); handleRenameFile(file.id); }}><FiEdit2 size={14} /></button>
+                  <button className="icon-btn" onClick={(e) => handleDeleteFile(file.id, e)}><FiX size={16} /></button>
                 </li>
               ))}
-              {filteredFiles.length === 0 && <li className="empty-files">No files match</li>}
+              {filteredFiles.length === 0 && <li className="empty-files">No files found</li>}
             </ul>
           </aside>
         )}
         {sidebarOpen && !zenMode && <div className="overlay" onClick={() => setSidebarOpen(false)}></div>}
+
+        {/* Main Editor Area */}
         <section className="editor-section">
           {activeFile ? (
             <>
               {!zenMode && (
                 <div className="editor-header">
-                  <span className="file-icon-small">{getFileIcon(activeFile.name)}</span><span>{activeFile.name}</span>
+                  <span className="file-icon-small">{getFileIcon(activeFile.name)}</span>
+                  <span>{activeFile.name}</span>
                   {showUnsavedDot && <span className="unsaved-dot" title="Unsaved">●</span>}
                   <span className="editor-actions">
-                    <button onClick={() => editorRef.current?.trigger('keyboard', 'undo')} title="Undo"><FiChevronsLeft size={14} /></button>
-                    <button onClick={() => editorRef.current?.trigger('keyboard', 'redo')} title="Redo"><FiChevronsRight size={14} /></button>
-                    <button onClick={() => editorRef.current?.getAction('actions.find')?.run()} title="Find"><FiSearch size={14} /></button>
-                    <button onClick={handleFormat} title="Format"><FiAlignLeft size={14} /></button>
-                    <button onClick={handleZenToggle} title="Zen Mode"><FiMaximize2 size={14} /></button>
+                    <button className="icon-btn" onClick={handleFormat}><FiAlignLeft size={16} /></button>
                   </span>
                 </div>
               )}
               <div className="editor-wrapper">
                 <Editor height="100%" language={activeFile.language} value={activeFile.content} onChange={handleCodeChange} theme={theme} onMount={handleEditorDidMount} options={{
-                  fontSize, lineHeight: 1.6, fontLigatures: true, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", minimap: { enabled: false }, wordWrap: 'off', automaticLayout: true, lineNumbers: 'on', formatOnPaste: false, formatOnType: false, autoIndent: 'keep', tabSize: 4, readOnly: false, mouseWheelZoom: true, contextmenu: false, selectOnLineNumbers: true, selectionHighlight: true, cursorBlinking: 'smooth', quickSuggestions: true, suggestOnTriggerCharacters: true, acceptSuggestionOnEnter: 'on', colorDecorators: true, matchBrackets: 'always', autoClosingBrackets: 'languageDefined', autoClosingQuotes: 'languageDefined', scrollBeyondLastLine: false, padding: { top: 8, bottom: 120 }, fixedOverflowWidgets: true, bracketPairColorization: { enabled: true }, guides: { bracketPairs: true, indentation: true }, renderLineHighlight: 'all', renderWhitespace: 'selection', find: { addExtraSpaceOnTop: false, autoFindInSelection: 'never', seedSearchStringFromSelection: 'always' }, snippetSuggestions: 'inline', tabCompletion: 'on', "semanticHighlighting.enabled": true,
+                  fontSize, lineHeight: 1.6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", minimap: { enabled: false }, wordWrap: 'off', automaticLayout: true, lineNumbers: 'on', formatOnPaste: false, formatOnType: false, autoIndent: 'keep', tabSize: 4, readOnly: false, mouseWheelZoom: true, contextmenu: false, selectOnLineNumbers: true, selectionHighlight: true, cursorBlinking: 'smooth', quickSuggestions: true, suggestOnTriggerCharacters: true, acceptSuggestionOnEnter: 'on', colorDecorators: true, matchBrackets: 'always', autoClosingBrackets: 'languageDefined', autoClosingQuotes: 'languageDefined', scrollBeyondLastLine: false, padding: { top: 8, bottom: 120 }, fixedOverflowWidgets: true, bracketPairColorization: { enabled: true }, guides: { bracketPairs: true, indentation: true }, renderLineHighlight: 'all', renderWhitespace: 'selection', find: { addExtraSpaceOnTop: false, autoFindInSelection: 'never', seedSearchStringFromSelection: 'always' }, snippetSuggestions: 'inline', tabCompletion: 'on', "semanticHighlighting.enabled": true,
                 }} />
               </div>
+
+              {/* Native Mobile Toolbar */}
               {!zenMode && (
                 <>
                   <div className="mobile-keyboard-toolbar">
-                    <div className="toolbar-group">
-                      <button onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={() => { editorRef.current?.trigger('keyboard', 'undo'); keepFocus(); }} aria-label="Undo"><FiChevronsLeft /></button>
-                      <button onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={() => { editorRef.current?.trigger('keyboard', 'redo'); keepFocus(); }} aria-label="Redo"><FiChevronsRight /></button>
-                    </div>
+                    <button onClick={() => { editorRef.current?.trigger('keyboard', 'undo'); keepFocus(); }}><FiChevronsLeft /></button>
+                    <button onClick={() => { editorRef.current?.trigger('keyboard', 'redo'); keepFocus(); }}><FiChevronsRight /></button>
                     <div className="toolbar-divider" />
-                    <div className="toolbar-group">
-                      <button onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={handleMobileTab}>Tab</button>
-                      <button onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={handleMobileEnter} aria-label="Enter"><FiCornerDownLeft /></button>
-                      <button onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={handleMobileDelete} className="delete-btn" aria-label="Delete"><FiDelete /></button>
-                    </div>
+                    <button onClick={handleMobileTab}>Tab</button>
+                    <button onClick={handleMobileEnter}><FiCornerDownLeft /></button>
+                    <button onClick={handleMobileDelete} className="delete-btn"><FiDelete /></button>
                   </div>
                   <div className="snippet-bar">
                     {['()', '{}', '[]', '""', "''", ';', '=>', '${}', '/* */', '//', '<>', '</>'].map(s => (
-                      <button key={s} onMouseDown={e => e.preventDefault()} onTouchStart={e => e.preventDefault()} onClick={() => insertSnippet(s)}>{s}</button>
+                      <button key={s} onClick={() => insertSnippet(s)}>{s}</button>
                     ))}
                   </div>
                 </>
@@ -678,25 +692,27 @@ function App() {
             </>
           ) : (
             <div className="empty-state">
-              <div className="empty-state-logo"><FiCode size={64} className="empty-icon" /></div>
-              <h2 className="empty-title">CodeX</h2>
-              <p className="empty-subtitle">Premium Code Editor</p>
+              <FiCode size={64} color="#58A6FF" />
+              <h2>Welcome to CodeX</h2>
+              <p>Premium Web Code Editor</p>
               <button onClick={handleCreateNewFile}><FiPlus size={16} /> Create New File</button>
             </div>
           )}
         </section>
+
+        {/* Live Preview Panel */}
         {showPreview && (
           <div className="preview-panel">
             <div className="preview-header">
               <span>Live Preview</span>
               <div className="preview-controls">
                 <div className="device-toggle">
-                  <button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')} title="Mobile"><FiSmartphone size={14} /></button>
-                  <button className={previewDevice === 'tablet' ? 'active' : ''} onClick={() => setPreviewDevice('tablet')} title="Tablet"><FiTablet size={14} /></button>
-                  <button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')} title="Desktop"><FiMonitor size={14} /></button>
+                  <button className={previewDevice === 'mobile' ? 'active' : ''} onClick={() => setPreviewDevice('mobile')}><FiSmartphone size={16} /></button>
+                  <button className={previewDevice === 'tablet' ? 'active' : ''} onClick={() => setPreviewDevice('tablet')}><FiTablet size={16} /></button>
+                  <button className={previewDevice === 'desktop' ? 'active' : ''} onClick={() => setPreviewDevice('desktop')}><FiMonitor size={16} /></button>
                 </div>
-                <button onClick={() => setShowConsole(!showConsole)} style={{ fontSize: '0.8rem' }}><FiTerminal /> Console {consoleLogs.length > 0 && <span className="console-badge">{consoleLogs.length}</span>}</button>
-                <button onClick={() => setShowPreview(false)}><FiX size={14} /></button>
+                <button className="icon-btn" onClick={() => setShowConsole(!showConsole)}><FiTerminal size={18} /></button>
+                <button className="icon-btn" onClick={() => setShowPreview(false)}><FiX size={20} /></button>
               </div>
             </div>
             <div className="preview-body">
@@ -705,15 +721,12 @@ function App() {
             {showConsole && (
               <div className="console-panel">
                 <div className="console-header">
-                  <span><FiTerminal size={12} /> Console ({filteredLogs.length})</span>
-                  <div className="console-controls">
-                    <select value={logFilter} onChange={e => setLogFilter(e.target.value)}><option value="all">All</option><option value="log">Logs</option><option value="warn">Warnings</option><option value="error">Errors</option><option value="info">Info</option></select>
-                    <button onClick={() => setConsoleLogs([])}>Clear</button>
-                  </div>
+                  <span>Console</span>
+                  <button className="icon-btn" onClick={() => setConsoleLogs([])}><FiTrash2 size={14} /></button>
                 </div>
                 <div className="console-output">
-                  {filteredLogs.length === 0 ? <span style={{ color: '#64748b' }}>No logs...</span> : filteredLogs.map((log, i) => (
-                    <div key={i} className="log-line" style={{ color: logColor(log.level) }}><span className="log-time">{log.time}</span><span className="log-level">[{log.level}]</span>{log.message}</div>
+                  {filteredLogs.length === 0 ? <span style={{ color: '#8B949E' }}>No logs...</span> : filteredLogs.map((log, i) => (
+                    <div key={i} className="log-line" style={{ color: logColor(log.level) }}><span className="log-time">{log.time}</span> {log.message}</div>
                   ))}
                 </div>
               </div>
@@ -721,55 +734,64 @@ function App() {
           </div>
         )}
       </main>
-      {contextMenu.visible && (
-        <div className="custom-context-menu" style={{ top: contextMenu.y, left: contextMenu.x }}>
-          {contextMenu.fileId && !contextMenu.hasSelection && (
-            <><button onClick={() => handleRenameFile(contextMenu.fileId)}><FiEdit2 size={14} /> Rename</button><button onClick={() => { handleDeleteFile(contextMenu.fileId); setContextMenu(c => ({ ...c, visible: false })); }} className="text-red"><FiTrash2 size={14} /> Delete</button></>
-          )}
-          {contextMenu.hasSelection && (
-            <><button onClick={handleCut}><FiScissors size={14} /> Cut</button><button onClick={handleCopy}><FiCopy size={14} /> Copy</button><button onClick={handleDeleteSelection} className="text-red"><FiX size={14} /> Delete</button></>
-          )}
-          {!contextMenu.fileId && !contextMenu.hasSelection && <button onClick={handlePaste}><FiClipboard size={14} /> Paste</button>}
-          <button onClick={handleSelectAll}><FiCode size={14} /> Select All</button>
+
+      {/* Status Bar */}
+      {!zenMode && (
+        <footer className="status-bar">
+          <div>{activeFile?.language?.toUpperCase() || 'TXT'}</div>
+          <div>Ln {cursorPos.line}, Col {cursorPos.col}</div>
+          <div>{lastSaveTime && `Saved ${timeAgo(lastSaveTime)}`}</div>
+        </footer>
+      )}
+
+      {/* Settings / Menu Bottom Sheet */}
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Settings & Menu</h2>
+              <button className="icon-btn" onClick={() => setShowSettings(false)}><FiX size={24} /></button>
+            </div>
+            <div className="modal-body">
+              <button className="menu-btn" onClick={() => { setShowCommandPalette(true); setShowSettings(false); }}><FiCommand /> Command Palette</button>
+              <button className="menu-btn" onClick={() => { setShowShortcuts(true); setShowSettings(false); }}><FiInfo /> Keyboard Shortcuts</button>
+              <button className="menu-btn" onClick={() => { setTheme(theme === 'tech-dark' ? 'vs-light' : 'tech-dark'); setShowSettings(false); }}>{theme === 'tech-dark' ? <FiSun /> : <FiMoon />} Toggle Theme</button>
+              <button className="menu-btn" onClick={() => { handleZenToggle(); setShowSettings(false); }}><FiMaximize2 /> Zen Mode</button>
+              <div className="setting-item">
+                <label>Font Size: {fontSize}px</label>
+                <input type="range" min={FONT_MIN} max={FONT_MAX} value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} />
+              </div>
+              <button className="menu-btn" onClick={() => { setShowAbout(true); setShowSettings(false); }}><FiInfo /> About CodeX</button>
+            </div>
+          </div>
         </div>
       )}
+
+      {/* Command Palette */}
       {showCommandPalette && (
         <div className="modal-overlay" onClick={() => setShowCommandPalette(false)}>
           <div className="command-palette" onClick={e => e.stopPropagation()}>
-            <div className="cp-input-wrap"><FiSearch size={16} /><input type="text" placeholder="Type a command..." value={commandQuery} onChange={(e) => setCommandQuery(e.target.value)} autoFocus /><FiX size={16} style={{ cursor: 'pointer' }} onClick={() => setShowCommandPalette(false)} /></div>
+            <div className="cp-input-wrap">
+              <FiSearch size={18} color="#8B949E" />
+              <input type="text" placeholder="Type a command..." value={commandQuery} onChange={(e) => setCommandQuery(e.target.value)} autoFocus />
+              <FiX size={20} className="icon-btn" onClick={() => setShowCommandPalette(false)} />
+            </div>
             <div className="cp-list">
               {filteredCommands.length === 0 ? <div className="cp-empty">No commands match</div> : filteredCommands.map(cmd => (
-                <button key={cmd.id} className="cp-item" onClick={() => runCommand(cmd)}>{cmd.icon} <span>{cmd.label}</span>{recentCommands.includes(cmd.id) && !commandQuery && <span className="cp-recent">Recent</span>}</button>
+                <button key={cmd.id} className="cp-item" onClick={() => runCommand(cmd)}>{cmd.icon} <span>{cmd.label}</span></button>
               ))}
             </div>
           </div>
         </div>
       )}
-      {showShortcuts && (
-        <div className="modal-overlay" onClick={() => setShowShortcuts(false)}>
-          <div className="modal-content shortcuts-modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header"><h2><FiCommand size={16} /> Keyboard Shortcuts</h2><button onClick={() => setShowShortcuts(false)}><FiX /></button></div>
-            <div className="modal-body shortcuts-list">
-              {[['Save to Phone', 'Ctrl + S'], ['Toggle Preview', 'Ctrl + Enter'], ['Command Palette', 'Ctrl + Shift + P'], ['Format Document', 'Ctrl + Shift + F'], ['New File', 'Ctrl + Shift + N'], ['Show Shortcuts', 'Ctrl + /'], ['Close All', 'Esc']].map(([label, keys]) => (
-                <div key={label} className="shortcut-row"><span>{label}</span><kbd>{keys}</kbd></div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-      {showAiPlaceholder && (
-        <div className="modal-overlay" onClick={() => setShowAiPlaceholder(false)}>
-          <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
-            <div className="alert-icon info"><FiZap /></div><h3>AI Assistant</h3><p>Coming soon! This feature will help you explain, fix, and refactor code using AI.</p>
-            <div className="alert-actions"><button className="alert-btn confirm" onClick={() => setShowAiPlaceholder(false)}>Got it</button></div>
-          </div>
-        </div>
-      )}
+
+      {/* Alert / Prompt Box */}
       {alertConfig.visible && (
         <div className="modal-overlay">
           <div className="custom-alert-box">
-            <div className={`alert-icon ${alertConfig.type}`}>{alertConfig.type === 'success' ? <FiCheckCircle /> : <FiAlertCircle />}</div>
-            <h3>{alertConfig.title}</h3><p>{alertConfig.message}</p>
+            <div className={`alert-icon ${alertConfig.type}`}>{alertConfig.type === 'success' ? <FiCheckCircle size={32} /> : <FiAlertCircle size={32} />}</div>
+            <h3>{alertConfig.title}</h3>
+            <p>{alertConfig.message}</p>
             {alertConfig.isPrompt && <input type="text" className="alert-input" placeholder="filename.js" value={alertConfig.inputValue} onChange={(e) => setAlertConfig({ ...alertConfig, inputValue: e.target.value })} autoFocus />}
             <div className="alert-actions">
               <button className="alert-btn cancel" onClick={closeAlert}>Cancel</button>
@@ -778,32 +800,19 @@ function App() {
           </div>
         </div>
       )}
-      {showSettings && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header"><h2><FiSettings size={16} /> Settings</h2><button onClick={() => setShowSettings(false)}><FiX /></button></div>
-            <div className="modal-body">
-              <div className="setting-item"><label>Editor Theme</label><select value={theme} onChange={(e) => setTheme(e.target.value)}><option value="tech-dark">CodeX Dark (Premium)</option><option value="vs-dark">VS Dark (Default)</option><option value="vs-light">Light</option><option value="hc-black">High Contrast</option></select></div>
-              <div className="setting-item"><label>Font Size: {fontSize}px</label><input type="range" min={FONT_MIN} max={FONT_MAX} value={fontSize} onChange={(e) => setFontSize(Number(e.target.value))} /></div>
-              <div className="setting-item"><label>Quick Font Size</label><div className="font-quick"><button onClick={() => setFontSize(s => Math.max(FONT_MIN, s - 1))}>A−</button><span>{fontSize}px</span><button onClick={() => setFontSize(s => Math.min(FONT_MAX, s + 1))}>A+</button></div></div>
-            </div>
+
+      {/* About Modal */}
+      {showAbout && (
+        <div className="modal-overlay" onClick={() => setShowAbout(false)}>
+          <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
+            <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
+            <h3>CodeX Premium Editor</h3>
+            <p style={{ marginBottom: 24 }}>Version 1.0.0<br/>A powerful offline PWA code editor.</p>
+            <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
       )}
-      {!zenMode && (
-        <footer className="status-bar">
-          <div className="status-left">
-            <span>{activeFile?.language?.toUpperCase() || 'TXT'}</span>
-            <span>Ln {cursorPos.line}, Col {cursorPos.col}</span>
-            {selectionInfo.count > 0 && <span className="selection-info">({selectionInfo.count} selected)</span>}
-            {!online && <span className="status-offline">● Offline</span>}
-          </div>
-          <div className="status-right">
-            {lastSaveTime && <span><FiClock size={10} /> Saved {timeAgo(lastSaveTime)}</span>}
-            <span>UTF-8</span><span>v1.0</span>
-          </div>
-        </footer>
-      )}
+
     </div>
   );
 }

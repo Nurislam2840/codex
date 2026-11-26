@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
+  <defs>
+    <linearGradient id="codexGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+  </defs>
+  <!-- Background Circle -->
+  <circle cx="50" cy="50" r="46" fill="#0f172a" stroke="url(#codexGradient)" stroke-width="4" />
+  <!-- Code Brackets -->
+  <path d="M35 35 L20 50 L35 65" fill="none" stroke="url(#codexGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M65 35 L80 50 L65 65" fill="none" stroke="url(#codexGradient)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <!-- Center Slash -->
+  <line x1="55" y1="30" x2="45" y2="70" stroke="#f472b6" stroke-width="5" stroke-linecap="round" />
+</svg>
