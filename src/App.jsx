@@ -12,7 +12,7 @@ import {
   FiWifiOff, FiShare2, FiClock, FiCommand, FiCheck, FiMaximize2,
   FiMinimize2, FiMonitor, FiSmartphone, FiTablet,
   FiZap, FiFileText, FiTrash2, FiMoreVertical, FiInfo,
-  FiType, FiMinus, FiPlusCircle // ফন্ট সাইজের জন্য নতুন আইকন
+  FiType, FiMinus, FiPlusCircle
 } from 'react-icons/fi';
 import './App.css';
 
@@ -463,7 +463,6 @@ function App() {
       if (sel && !sel.isEmpty()) setSelectionInfo({ count: model.getValueInRange(sel).length }); else setSelectionInfo({ count: 0 });
     });
     
-    // কাস্টম কন্টেক্সট মেনু
     const openContextMenu = (e, forceSelection = false) => {
       if (e && e.event) e.event.preventDefault();
       const selection = editor.getSelection(); const model = editor.getModel();
@@ -536,11 +535,9 @@ function App() {
             </div>
           </div>
           <div className="actions">
-            {/* ফন্ট সাইজ কমানো/বাড়ানোর বাটন */}
             <button className="icon-btn" onClick={() => setFontSize(s => Math.max(FONT_MIN, s - 1))} title="Decrease Font"><FiMinus size={18} /></button>
             <button className="icon-btn" onClick={() => setFontSize(s => Math.min(FONT_MAX, s + 1))} title="Increase Font"><FiPlusCircle size={18} /></button>
             
-            {/* থিম টগল বাটন */}
             <button className="icon-btn" onClick={() => setTheme(theme === 'tech-dark' ? 'vs-light' : 'tech-dark')} title="Toggle Theme">
               {theme === 'tech-dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
             </button>
@@ -553,10 +550,8 @@ function App() {
       )}
 
       <main className="main-content">
-        {/* ... (Sidebar এবং Editor অংশ আগের মতোই থাকবে, তাই এখানে পুরোটা দেওয়া হলো না, কিন্তু আপনার ফাইলে এটি ঠিক থাকবে) */}
         {!zenMode && (
           <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`}>
-             {/* আগের সাইডবার কোড */}
              <div className="sidebar-header"><span>Explorer</span><button onClick={handleCreateNewFile} className="icon-btn"><FiPlus size={18} /></button></div>
              <div className="sidebar-search"><FiSearch size={16} color="#8B949E" /><input type="text" placeholder="Search files..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} /></div>
              <div className="sidebar-actions">
@@ -737,7 +732,7 @@ function App() {
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.0.6<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.0.8<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>

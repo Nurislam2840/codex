@@ -12,7 +12,6 @@
   --danger: #F85149;
 }
 
-/* লাইট মোড কালার প্যালেট (আপনার App.css এর একদম উপরে :root এর নিচে বসান) */
 .light-mode {
   --bg-base: #FFFFFF;
   --bg-surface: #F6F8FA;
@@ -169,6 +168,7 @@ body, html, #root {
 .editor-section {
   flex: 1; display: flex; flex-direction: column;
   background: var(--bg-base); min-height: 0;
+  overflow: hidden; /* গুরুত্বপূর্ণ */
 }
 .editor-header {
   display: flex; align-items: center; padding: 8px 16px;
@@ -177,9 +177,24 @@ body, html, #root {
   color: var(--text-secondary); gap: 8px;
 }
 .editor-actions { margin-left: auto; display: flex; gap: 4px; }
-.editor-wrapper { flex: 1; position: relative; min-height: 0; }
+.editor-wrapper { flex: 1; position: relative; min-height: 0; overflow: hidden; }
 
-/* Mobile Native Toolbar (Fixed Overflow) */
+/* Monaco Editor Touch Scroll & Scrollbar Fix */
+.monaco-editor, 
+.monaco-editor .overflow-guard, 
+.monaco-scrollable-element {
+  touch-action: pan-x pan-y !important; 
+}
+.monaco-editor .scrollbar.horizontal {
+  height: 8px !important;
+  background: var(--border-color) !important;
+}
+.monaco-editor .scrollbar.horizontal .slider {
+  background: var(--text-secondary) !important;
+  border-radius: 4px;
+}
+
+/* Mobile Native Toolbar (Slideable) */
 .mobile-keyboard-toolbar {
   display: flex; 
   align-items: center; 
@@ -189,9 +204,10 @@ body, html, #root {
   border-top: 1px solid var(--border-color); 
   gap: 6px;
   width: 100%;
-  overflow-x: auto;
+  overflow-x: auto; /* ডানে-বামে স্লাইড */
   white-space: nowrap;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-x; /* টাচে শুধু স্লাইড হবে */
   scrollbar-width: none;
 }
 .mobile-keyboard-toolbar::-webkit-scrollbar { display: none; }
@@ -207,18 +223,20 @@ body, html, #root {
 .mobile-keyboard-toolbar button:active { background: var(--border-color); transform: scale(0.95); }
 .mobile-keyboard-toolbar button.delete-btn { color: var(--danger); }
 
-/* Snippet Bar */
+/* Snippet Bar (Slideable) */
 .snippet-bar {
   display: flex; gap: 8px; padding: 10px 12px;
   overflow-x: auto; background: var(--bg-surface);
-  border-top: 1px solid var(--border-color); scrollbar-width: none;
+  border-top: 1px solid var(--border-color);
+  touch-action: pan-x;
+  scrollbar-width: none;
 }
 .snippet-bar::-webkit-scrollbar { display: none; }
 .snippet-bar button {
   padding: 6px 12px; background: var(--bg-elevated); border: none;
   border-radius: 6px; color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
-  white-space: nowrap;
+  white-space: nowrap; flex: 0 0 auto;
 }
 
 /* Bottom Sheet / Modals */
