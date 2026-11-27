@@ -41,6 +41,9 @@ body, html, #root {
   background-color: var(--bg-base);
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);   /* নতুন যোগ করা */
+  padding-right: env(safe-area-inset-right); /* নতুন যোগ করা */
+  box-sizing: border-box; /* জরুরি */
 }
 
 /* Top Navigation Bar */
@@ -164,19 +167,33 @@ body, html, #root {
 
 /* Mobile Native Toolbar */
 .mobile-keyboard-toolbar {
-  display: flex; align-items: center; justify-content: space-around;
-  padding: 8px 12px; background: var(--bg-surface);
-  border-top: 1px solid var(--border-color); gap: 8px;
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding: 8px 6px; 
+  background: var(--bg-surface);
+  border-top: 1px solid var(--border-color); 
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto; /* যদি খুব বেশি বাটন থাকে তবে স্ক্রল হবে */
+  scrollbar-width: none;
 }
+.mobile-keyboard-toolbar::-webkit-scrollbar { display: none; }
+
 .mobile-keyboard-toolbar button {
-  flex: 1; display: flex; align-items: center; justify-content: center;
-  padding: 10px; background: var(--bg-elevated);
+  flex: 1 1 auto; /* বাটনগুলো স্ক্রিনের সাথে ফিট হবে */
+  min-width: 40px; /* বাটন যাতে একদম ছোট না হয়ে যায় */
+  display: flex; align-items: center; justify-content: center;
+  padding: 10px 4px; background: var(--bg-elevated);
   border: 1px solid var(--border-color); color: var(--text-primary);
-  border-radius: 8px; font-size: 0.9rem; font-weight: 500;
+  border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+  white-space: nowrap;
 }
-.mobile-keyboard-toolbar button:active { background: var(--border-color); transform: scale(0.95); }
-.mobile-keyboard-toolbar button.delete-btn { color: var(--danger); }
-.toolbar-divider { width: 1px; height: 20px; background: var(--border-color); }
+.mobile-keyboard-toolbar button:active { 
+  background: var(--border-color); 
+  transform: scale(0.95); 
+}
 
 /* Snippet Bar */
 .snippet-bar {

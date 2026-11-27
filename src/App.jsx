@@ -807,7 +807,7 @@ function App() {
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.0.0<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.0.2<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
