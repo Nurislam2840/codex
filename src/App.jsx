@@ -422,39 +422,96 @@ function App() {
     monacoRef.current = monaco;
     
     monaco.editor.defineTheme('tech-dark', {
-      base: 'vs-dark', 
-      inherit: true,
-      rules: [
-        { token: '', foreground: 'C9D1D9' }, { token: 'comment', foreground: '8B949E', fontStyle: 'italic' },
-        { token: 'keyword', foreground: 'FF7B72' }, { token: 'string', foreground: 'A5D6FF' },
-        { token: 'number', foreground: '79C0FF' }, { token: 'function', foreground: 'D2A8FF' },
-        { token: 'variable', foreground: 'FFA657' }, { token: 'type', foreground: '7EE787' },
-        { token: 'tag', foreground: '7EE787' }, { token: 'attribute.name', foreground: '79C0FF' },
-      ],
-      colors: {
-        'editor.background': '#0D1117', 'editor.foreground': '#C9D1D9',
-        'editorLineNumber.foreground': '#484F58', 'editorLineNumber.activeForeground': '#C9D1D9',
-        'editorCursor.foreground': '#58A6FF', 'editor.selectionBackground': '#264F78',
-        'editor.lineHighlightBackground': '#161B22', 'editorIndentGuide.background': '#21262D',
-      }
-    });
+  base: 'vs-dark', 
+  inherit: true,
+  rules: [
+    // --- বেস ও কমন ---
+    { token: '', foreground: 'D4D4D4' }, // ডিফল্ট টেক্সট (হালকা ধূসর)
+    { token: 'comment', foreground: '6A9955', fontStyle: 'italic' }, // কমেন্ট (সফট সবুজ)
+    { token: 'delimiter', foreground: 'D4D4D4' }, 
+    { token: 'operator', foreground: 'D4D4D4' }, // অপারেটর (+, -, =)
 
-    monaco.editor.defineTheme('vs-light', {
-      base: 'vs', 
-      inherit: true,
-      rules: [
-        { token: '', foreground: '24292F' }, { token: 'comment', foreground: '6E7781', fontStyle: 'italic' },
-        { token: 'keyword', foreground: 'CF222E' }, { token: 'string', foreground: '0A3069' },
-        { token: 'number', foreground: '0550AE' }, { token: 'function', foreground: '8250DF' },
-        { token: 'variable', foreground: '953800' }, { token: 'type', foreground: '116329' },
-      ],
-      colors: {
-        'editor.background': '#FFFFFF', 'editor.foreground': '#24292F',
-        'editorLineNumber.foreground': '#8C959F', 'editorLineNumber.activeForeground': '#24292F',
-        'editorCursor.foreground': '#0969DA', 'editor.selectionBackground': '#B6D6F6',
-        'editor.lineHighlightBackground': '#F6F8FA', 'editorIndentGuide.background': '#D0D7DE',
-      }
-    });
+    // --- JS / TS / JSX / TSX ---
+    { token: 'keyword', foreground: 'C586C0' }, // let, const, if, return (সফট বেগুনি)
+    { token: 'keyword.control', foreground: 'C586C0' },
+    { token: 'string', foreground: 'CE9178' }, // "Hello" (সফট কমলা)
+    { token: 'number', foreground: 'B5CEA8' }, // 123, 3.14 (হালকা সবুজ)
+    { token: 'regexp', foreground: 'D16969' }, // রেজেক্স (সফট লাল)
+    { token: 'function', foreground: 'DCDCAA' }, // ফাংশন নাম (হালকা হলুদ)
+    { token: 'variable', foreground: '9CDCFE' }, // ভেরিয়েবল (আকাশি নীল)
+    { token: 'variable.predefined', foreground: '4FC1FF' }, // console, window (উজ্জ্বল নীল)
+    { token: 'type', foreground: '4EC9B0' }, // টাইপ (সবুজ-জলীয়)
+    { token: 'class', foreground: '4EC9B0' }, // ক্লাস নাম
+    { token: 'identifier', foreground: '9CDCFE' },
+    { token: 'constant', foreground: '569CD6' }, // true, false, null (নীল)
+
+    // --- HTML / XML / JSX ---
+    { token: 'tag', foreground: '569CD6' }, // <div>, <html> (নীল)
+    { token: 'metatag', foreground: '569CD6' },
+    { token: 'attribute.name', foreground: '9CDCFE' }, // class, id (হালকা নীল)
+    { token: 'attribute.value', foreground: 'CE9178' }, // "container" (কমলা)
+    { token: 'delimiter.html', foreground: '808080' }, // < > /
+
+    // --- CSS / SCSS ---
+    { token: 'tag.css', foreground: 'D7BA7D' }, // body, .class (সোনালী/হলুদ)
+    { token: 'attribute.name.css', foreground: '9CDCFE' }, // background (নীল)
+    { token: 'attribute.value.css', foreground: 'CE9178' }, // red, auto (কমলা)
+    { token: 'attribute.value.number.css', foreground: 'B5CEA8' }, // 10, 20 (সবুজ)
+    { token: 'attribute.value.unit.css', foreground: 'B5CEA8' }, // px, rem (সবুজ)
+    { token: 'attribute.value.hex.css', foreground: 'CE9178' }, // #ffffff (কমলা)
+
+    // --- Python ---
+    { token: 'keyword.python', foreground: 'C586C0' }, // def, import (বেগুনি)
+    { token: 'string.python', foreground: 'CE9178' }, 
+    { token: 'identifier.python', foreground: '9CDCFE' },
+    { token: 'type.identifier.python', foreground: '4EC9B0' }, // str, int (সবুজ)
+
+    // --- SQL ---
+    { token: 'keyword.sql', foreground: '569CD6' }, // SELECT, FROM (নীল)
+    { token: 'string.sql', foreground: 'CE9178' }, // 'John' (কমলা)
+    { token: 'number.sql', foreground: 'B5CEA8' }, // 100 (সবুজ)
+    { token: 'operator.sql', foreground: 'D4D4D4' }, 
+
+    // --- PHP ---
+    { token: 'metatag.php', foreground: '569CD6' }, // <?php ?>
+    { token: 'keyword.php', foreground: 'C586C0' }, // function, echo (বেগুনি)
+    { token: 'variable.php', foreground: '9CDCFE' }, // $variable (নীল)
+    { token: 'string.php', foreground: 'CE9178' },
+
+    // --- C / C++ ---
+    { token: 'keyword.c', foreground: '569CD6' }, // int, void, return (নীল)
+    { token: 'keyword.cpp', foreground: '569CD6' }, // class, public (নীল)
+    { token: 'type.c', foreground: '4EC9B0' }, // int, float (সবুজ)
+    { token: 'type.cpp', foreground: '4EC9B0' }, // string, vector (সবুজ)
+    { token: 'string.c', foreground: 'CE9178' },
+  ],
+  colors: {
+    // এডিটরের মেইন ব্যাকগ্রাউন্ড (GitHub/VS Code Dark)
+    'editor.background': '#1E1E1E',
+    'editor.foreground': '#D4D4D4',
+    
+    // লাইন নাম্বার
+    'editorLineNumber.foreground': '#858585',
+    'editorLineNumber.activeForeground': '#C6C6C6',
+    
+    // কার্সর ও সিলেকশন
+    'editorCursor.foreground': '#AEAFAD',
+    'editor.selectionBackground': '#264F78',
+    'editor.inactiveSelectionBackground': '#3A3D41',
+    
+    // বর্তমান লাইন হাইলাইট
+    'editor.lineHighlightBackground': '#2A2D2E',
+    'editor.lineHighlightBorder': '#282828',
+    
+    // ইন্ডেন্ট গাইড (দাগ)
+    'editorIndentGuide.background': '#404040',
+    'editorIndentGuide.activeBackground': '#707070',
+    
+    // ব্র্যাকেট ম্যাচিং (বন্ধনী মিলানো)
+    'editorBracketMatch.background': '#0064001a',
+    'editorBracketMatch.border': '#888888',
+  }
+});
     
     editor.onDidChangeCursorPosition((e) => setCursorPos({ line: e.position.lineNumber, col: e.position.column }));
     editor.onDidChangeCursorSelection((e) => {
@@ -732,7 +789,7 @@ function App() {
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.0.8<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.1.0<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
