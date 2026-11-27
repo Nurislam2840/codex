@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.nurislam.codexeditor",
+    "sha256_cert_fingerprints": ["F7:A0:E2:16:A6:D8:5A:4B:29:E4:47:0C:77:11:C8:63:95:E6:30:7C:37:72:37:7B:40:51:65:21:3F:9A:F3:ED"]
+  }
+}]
