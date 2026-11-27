@@ -12,6 +12,19 @@
   --danger: #F85149;
 }
 
+/* লাইট মোড কালার প্যালেট (আপনার App.css এর একদম উপরে :root এর নিচে বসান) */
+.light-mode {
+  --bg-base: #FFFFFF;
+  --bg-surface: #F6F8FA;
+  --bg-elevated: #EAEEF2;
+  --border-color: #D0D7DE;
+  --text-primary: #24292F;
+  --text-secondary: #57606A;
+  --accent: #0969DA;
+  --success: #1A7F37;
+  --danger: #CF222E;
+}
+
 * {
   margin: 0;
   padding: 0;

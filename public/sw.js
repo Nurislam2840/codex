@@ -1,4 +1,4 @@
-const CACHE_NAME = 'codex-v1.0.4';
+const CACHE_NAME = 'codex-v1.0.6';
 const CORE_ASSETS = ['/', '/index.html', '/manifest.json', '/logo.svg'];
 
 self.addEventListener('install', (e) => {
