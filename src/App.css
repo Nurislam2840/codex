@@ -41,9 +41,10 @@ body, html, #root {
   background-color: var(--bg-base);
   padding-top: env(safe-area-inset-top);
   padding-bottom: env(safe-area-inset-bottom);
-  padding-left: env(safe-area-inset-left);   /* নতুন যোগ করা */
-  padding-right: env(safe-area-inset-right); /* নতুন যোগ করা */
-  box-sizing: border-box; /* জরুরি */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Top Navigation Bar */
@@ -165,35 +166,33 @@ body, html, #root {
 .editor-actions { margin-left: auto; display: flex; gap: 4px; }
 .editor-wrapper { flex: 1; position: relative; min-height: 0; }
 
-/* Mobile Native Toolbar */
+/* Mobile Native Toolbar (Fixed Overflow) */
 .mobile-keyboard-toolbar {
   display: flex; 
   align-items: center; 
-  justify-content: space-between;
-  padding: 8px 6px; 
+  justify-content: flex-start;
+  padding: 8px 8px; 
   background: var(--bg-surface);
   border-top: 1px solid var(--border-color); 
-  gap: 4px;
+  gap: 6px;
   width: 100%;
-  box-sizing: border-box;
-  overflow-x: auto; /* যদি খুব বেশি বাটন থাকে তবে স্ক্রল হবে */
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
 }
 .mobile-keyboard-toolbar::-webkit-scrollbar { display: none; }
 
 .mobile-keyboard-toolbar button {
-  flex: 1 1 auto; /* বাটনগুলো স্ক্রিনের সাথে ফিট হবে */
-  min-width: 40px; /* বাটন যাতে একদম ছোট না হয়ে যায় */
+  flex: 0 0 auto;
   display: flex; align-items: center; justify-content: center;
-  padding: 10px 4px; background: var(--bg-elevated);
+  padding: 10px 14px; background: var(--bg-elevated);
   border: 1px solid var(--border-color); color: var(--text-primary);
-  border-radius: 8px; font-size: 0.85rem; font-weight: 500;
+  border-radius: 8px; font-size: 0.9rem; font-weight: 500;
   white-space: nowrap;
 }
-.mobile-keyboard-toolbar button:active { 
-  background: var(--border-color); 
-  transform: scale(0.95); 
-}
+.mobile-keyboard-toolbar button:active { background: var(--border-color); transform: scale(0.95); }
+.mobile-keyboard-toolbar button.delete-btn { color: var(--danger); }
 
 /* Snippet Bar */
 .snippet-bar {
@@ -206,6 +205,7 @@ body, html, #root {
   padding: 6px 12px; background: var(--bg-elevated); border: none;
   border-radius: 6px; color: var(--text-primary);
   font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  white-space: nowrap;
 }
 
 /* Bottom Sheet / Modals */
@@ -219,6 +219,7 @@ body, html, #root {
   border-bottom: none; padding: 20px; display: flex; flex-direction: column;
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   max-height: 90vh; overflow-y: auto;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
 }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 

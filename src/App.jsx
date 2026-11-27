@@ -87,10 +87,12 @@ function App() {
   const [logFilter, setLogFilter] = useState('all');
   const [showShortcuts, setShowShortcuts] = useState(false);
   const [draggedFileId, setDraggedFileId] = useState(null);
-  const [showAiPlaceholder, setShowAiPlaceholder] = useState(false);
   const [consoleLogs, setConsoleLogs] = useState([]);
   const [showConsole, setShowConsole] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
+
+  // ফাইল হ্যান্ডেল ট্র্যাক করার জন্য (বারবার ফাইল ম্যানেজার ওপেন না হওয়ার জন্য)
+  const fileHandlesMap = useRef({});
 
   const [alertConfig, setAlertConfig] = useState({ visible: false, type: 'success', title: '', message: '', isPrompt: false, inputValue: '', onConfirm: null });
   const [contextMenu, setContextMenu] = useState({ visible: false, x: 0, y: 0, hasSelection: false, fileId: null, selectionText: '' });
@@ -147,37 +149,60 @@ function App() {
     }
   }, [activeFile, handleCodeChange, showCustomAlert]);
 
+  // নতুন সেভ লজিক (বারবার ফাইল পিকার আসবে না)
   const handleSaveToPhone = useCallback(async () => {
     if (!activeFile) return;
-    const fileName = activeFile.name;
-    const ext = fileName.split('.').pop().toLowerCase();
-    let mimeType = 'text/plain';
-    if (ext === 'html' || ext === 'htm') mimeType = 'text/html';
-    else if (ext === 'css') mimeType = 'text/css';
-    else if (ext === 'js' || ext === 'jsx') mimeType = 'application/javascript';
-    else if (ext === 'json') mimeType = 'application/json';
-    else if (ext === 'xml') mimeType = 'application/xml';
-
+    
     try {
+      // যদি আগে থেকেই ফাইল হ্যান্ডেল থাকে, তবে সোজা সেভ হবে
+      if (fileHandlesMap.current[activeFile.id]) {
+        const fileHandle = fileHandlesMap.current[activeFile.id];
+        const writable = await fileHandle.createWritable();
+        await writable.write(activeFile.content);
+        await writable.close();
+        showCustomAlert('success', 'Saved!', 'File updated successfully.');
+        flashSaved();
+        return;
+      }
+
+      // প্রথমবার হলে ফাইল পিকার ওপেন হবে
       if ('showSaveFilePicker' in window && window.isSecureContext) {
+        const ext = activeFile.name.split('.').pop().toLowerCase();
+        let mimeType = 'text/plain';
+        if (ext === 'html' || ext === 'htm') mimeType = 'text/html';
+        else if (ext === 'css') mimeType = 'text/css';
+        else if (ext === 'js' || ext === 'jsx') mimeType = 'application/javascript';
+        else if (ext === 'json') mimeType = 'application/json';
+        
         try {
-          const fileHandle = await window.showSaveFilePicker({ suggestedName: fileName, types: [{ description: 'Code Files', accept: { [mimeType]: ['.' + ext] } }] });
+          const fileHandle = await window.showSaveFilePicker({ 
+            suggestedName: activeFile.name, 
+            types: [{ description: 'Code Files', accept: { [mimeType]: ['.' + ext] } }] 
+          });
+          // ফাইল হ্যান্ডেল মেমোরিতে সেভ করে রাখা হলো
+          fileHandlesMap.current[activeFile.id] = fileHandle;
+          
           const writable = await fileHandle.createWritable();
           await writable.write(activeFile.content);
           await writable.close();
-          showCustomAlert('success', 'Saved!', 'File saved to your phone.');
+          showCustomAlert('success', 'Saved!', 'File saved to storage.');
           flashSaved();
           return;
-        } catch (err) { if (err.name === 'AbortError') return; }
+        } catch (err) { 
+          if (err.name === 'AbortError') return; 
+        }
       }
+
+      // ফলব্যাক (যদি API সাপোর্ট না করে)
       const base64Content = btoa(unescape(encodeURIComponent(activeFile.content)));
-      const dataUri = `data:${mimeType};base64,${base64Content}`;
+      const dataUri = `data:application/octet-stream;base64,${base64Content}`;
       const a = document.createElement('a');
-      a.href = dataUri; a.download = fileName; a.style.display = 'none';
+      a.href = dataUri; a.download = activeFile.name; a.style.display = 'none';
       document.body.appendChild(a); a.click();
       setTimeout(() => { document.body.removeChild(a); }, 100);
-      showCustomAlert('success', 'Downloaded!', `${fileName} saved successfully.`);
+      showCustomAlert('success', 'Downloaded!', `${activeFile.name} saved.`);
       flashSaved();
+
     } catch (error) {
       showCustomAlert('danger', 'Save Failed', 'Could not save file.');
     }
@@ -238,16 +263,6 @@ function App() {
   }, [files, activeFile, savedFilesMap]);
 
   useEffect(() => {
-    if (searchMode !== 'content' || !searchQuery.trim()) { setSearchResults([]); return; }
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
-    searchTimerRef.current = setTimeout(() => {
-      const q = searchQuery.toLowerCase(); const results = [];
-      files.forEach(f => { f.content.split('\n').forEach((line, i) => { if (line.toLowerCase().includes(q)) results.push({ fileId: f.id, fileName: f.name, line: i + 1, text: line.trim() }); }); });
-      setSearchResults(results.slice(0, 50));
-    }, 250);
-  }, [searchQuery, searchMode, files]);
-
-  useEffect(() => {
     const handler = (e) => {
       const mod = e.ctrlKey || e.metaKey;
       if (mod && e.key === 's') { e.preventDefault(); handleSaveToPhone(); }
@@ -268,19 +283,6 @@ function App() {
     const url = URL.createObjectURL(content); const a = document.createElement('a');
     a.href = url; a.download = 'codex-project.zip'; a.click();
     URL.revokeObjectURL(url); showCustomAlert('success', 'Exported!', 'Project exported as ZIP archive.');
-  };
-
-  const handleExportSingleHTML = () => {
-    const htmlFile = files.find(f => f.name.endsWith('.html') || f.name.endsWith('.htm'));
-    if (!htmlFile) { showCustomAlert('danger', 'No HTML', 'No HTML file to export.'); return; }
-    const css = files.filter(f => f.name.endsWith('.css')).map(f => `<style>\n${f.content}\n</style>`).join('\n');
-    const js = files.filter(f => f.name.endsWith('.js')).map(f => `<script>\n${f.content}\n<\/script>`).join('\n');
-    let html = htmlFile.content;
-    if (/<\/head>/i.test(html)) html = html.replace(/<\/head>/i, `${css}</head>`); else html = `<head>${css}</head>` + html;
-    if (/<\/body>/i.test(html)) html = html.replace(/<\/body>/i, `${js}</body>`); else html += js;
-    const blob = new Blob([html], { type: 'text/html' }); const url = URL.createObjectURL(blob);
-    const a = document.createElement('a'); a.href = url; a.download = 'single-file.html'; a.click();
-    URL.revokeObjectURL(url); showCustomAlert('success', 'Exported!', 'Single HTML file generated.');
   };
 
   const handleShareUrl = () => {
@@ -309,6 +311,7 @@ function App() {
       const newFiles = files.filter(f => f.id !== id);
       setFiles(newFiles);
       if (newFiles.length > 0) setActiveFileId(newFiles[0].id); else setActiveFileId(null);
+      delete fileHandlesMap.current[id]; // ফাইল ডিলিট হলে হ্যান্ডেল রিমুভ
     });
   };
 
@@ -323,16 +326,6 @@ function App() {
         showCustomAlert('success', 'Imported!', `${fileName} loaded from URL.`);
       } catch (err) { showCustomAlert('danger', 'Import Failed', err.message); }
     });
-  };
-
-  const handleImportFromClipboard = async () => {
-    try {
-      const text = await navigator.clipboard.readText();
-      if (!text) { showCustomAlert('info', 'Clipboard Empty', 'No text found.'); return; }
-      const newFile = { id: Date.now().toString(), name: `clipboard-${Date.now()}.txt`, language: 'plaintext', content: text };
-      setFiles(prev => [...prev, newFile]); setActiveFileId(newFile.id); setSidebarOpen(false);
-      showCustomAlert('success', 'Imported!', 'Clipboard content added.');
-    } catch { showCustomAlert('danger', 'Import Failed', 'Allow clipboard access.'); }
   };
 
   const handleCut = async () => {
@@ -431,23 +424,22 @@ function App() {
   const handleEditorDidMount = (editor, monaco) => {
     editorRef.current = editor; monacoRef.current = monaco;
     
-    // প্রফেশনাল সিনট্যাক্স কালার থিম (VS Code এর মতো)
     monaco.editor.defineTheme('tech-dark', {
       base: 'vs-dark', inherit: true,
       rules: [
-        { token: '', foreground: 'C9D1D9' }, // Default text
-        { token: 'comment', foreground: '8B949E', fontStyle: 'italic' }, // Comments (Gray)
-        { token: 'keyword', foreground: 'FF7B72' }, // Keywords (Red/Pink)
+        { token: '', foreground: 'C9D1D9' },
+        { token: 'comment', foreground: '8B949E', fontStyle: 'italic' },
+        { token: 'keyword', foreground: 'FF7B72' },
         { token: 'keyword.control', foreground: 'FF7B72' },
-        { token: 'string', foreground: 'A5D6FF' }, // Strings (Light Blue)
-        { token: 'number', foreground: '79C0FF' }, // Numbers (Blue)
-        { token: 'function', foreground: 'D2A8FF' }, // Functions (Purple)
-        { token: 'variable', foreground: 'FFA657' }, // Variables (Orange)
-        { token: 'type', foreground: '7EE787' }, // Types (Green)
+        { token: 'string', foreground: 'A5D6FF' },
+        { token: 'number', foreground: '79C0FF' },
+        { token: 'function', foreground: 'D2A8FF' },
+        { token: 'variable', foreground: 'FFA657' },
+        { token: 'type', foreground: '7EE787' },
         { token: 'class', foreground: '7EE787' }, 
-        { token: 'tag', foreground: '7EE787' }, // HTML Tags (Green)
-        { token: 'attribute.name', foreground: '79C0FF' }, // HTML Attributes (Blue)
-        { token: 'attribute.value', foreground: 'A5D6FF' }, // HTML Attribute values (Light Blue)
+        { token: 'tag', foreground: '7EE787' },
+        { token: 'attribute.name', foreground: '79C0FF' },
+        { token: 'attribute.value', foreground: 'A5D6FF' },
         { token: 'delimiter', foreground: 'C9D1D9' },
         { token: 'operator', foreground: 'FF7B72' },
       ],
@@ -541,10 +533,8 @@ function App() {
     { id: 'format', label: 'Format Document', icon: <FiAlignLeft />, action: handleFormat },
     { id: 'save', label: 'Save to Phone', icon: <FiSave />, action: handleSaveToPhone },
     { id: 'export', label: 'Export Project ZIP', icon: <FiDownloadCloud />, action: handleExportZip },
-    { id: 'export-html', label: 'Export Single HTML', icon: <FiFileText />, action: handleExportSingleHTML },
     { id: 'share', label: 'Share via URL', icon: <FiShare2 />, action: handleShareUrl },
     { id: 'import', label: 'Import from URL', icon: <FiLink />, action: handleImportFromUrl },
-    { id: 'import-clip', label: 'Import from Clipboard', icon: <FiClipboard />, action: handleImportFromClipboard },
     { id: 'preview', label: 'Toggle Preview', icon: <FiPlay />, action: () => { setShowPreview(p => !p); setConsoleLogs([]); } },
     { id: 'theme', label: 'Toggle Theme', icon: <FiSun />, action: () => setTheme(t => t === 'tech-dark' ? 'vs-light' : 'tech-dark') },
     { id: 'zen', label: 'Toggle Zen Mode', icon: <FiMaximize2 />, action: handleZenToggle },
@@ -566,17 +556,6 @@ function App() {
   const runCommand = (cmd) => { setShowCommandPalette(false); setCommandQuery(''); setRecentCommands(prev => [cmd.id, ...prev.filter(id => id !== cmd.id)].slice(0, 5)); cmd.action(); };
   const timeAgo = (t) => { if (!t) return 'never'; const diff = Math.floor((Date.now() - t) / 1000); if (diff < 5) return 'just now'; if (diff < 60) return `${diff}s ago`; if (diff < 3600) return `${Math.floor(diff / 60)}m ago`; return `${Math.floor(diff / 3600)}h ago`; };
   const filteredLogs = consoleLogs.filter(l => logFilter === 'all' || l.level === logFilter);
-  const handleDragStart = (id) => setDraggedFileId(id);
-  const handleDragOver = (e) => e.preventDefault();
-  const handleDrop = (targetId) => {
-    if (!draggedFileId || draggedFileId === targetId) return;
-    setFiles(prev => {
-      const from = prev.findIndex(f => f.id === draggedFileId); const to = prev.findIndex(f => f.id === targetId);
-      if (from === -1 || to === -1) return prev;
-      const copy = [...prev]; const [moved] = copy.splice(from, 1); copy.splice(to, 0, moved); return copy;
-    });
-    setDraggedFileId(null);
-  };
 
   return (
     <div className={`app-container ${zenMode ? 'zen-mode' : ''}`}>
@@ -597,12 +576,6 @@ function App() {
             <button className="icon-btn" onClick={() => setShowSettings(true)}><FiMoreVertical size={22} /></button>
           </div>
         </header>
-      )}
-
-      {zenMode && (
-        <div className="zen-exit">
-          <button onClick={handleZenToggle}><FiMinimize2 size={18} /> Exit Zen</button>
-        </div>
       )}
 
       <main className="main-content">
@@ -677,7 +650,6 @@ function App() {
                   <div className="mobile-keyboard-toolbar">
                     <button onClick={() => { editorRef.current?.trigger('keyboard', 'undo'); keepFocus(); }}><FiChevronsLeft /></button>
                     <button onClick={() => { editorRef.current?.trigger('keyboard', 'redo'); keepFocus(); }}><FiChevronsRight /></button>
-                    <div className="toolbar-divider" />
                     <button onClick={handleMobileTab}>Tab</button>
                     <button onClick={handleMobileEnter}><FiCornerDownLeft /></button>
                     <button onClick={handleMobileDelete} className="delete-btn"><FiDelete /></button>
@@ -807,7 +779,7 @@ function App() {
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.0.2<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.0.4<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
