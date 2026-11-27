@@ -1,39 +1,12 @@
 {
   "rewrites": [
     {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|webmanifest|map|txt|xml))",
-      "destination": "/$1"
-    },
-    {
       "source": "/assets/(.*)",
       "destination": "/assets/$1"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/sw.js",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" },
-        { "key": "Service-Worker-Allowed", "value": "/" }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache" },
-        { "key": "Content-Type", "value": "application/manifest+json" }
-      ]
-    },
-    {
-      "source": "/.well-known/assetlinks.json",
-      "headers": [
-        { "key": "Content-Type", "value": "application/json" },
-        { "key": "Cache-Control", "value": "no-cache" }
-      ]
     }
   ]
 }
