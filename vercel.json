@@ -1,7 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|webmanifest|map))",
+      "source": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot|json|webmanifest|map|txt|xml))",
       "destination": "/$1"
     },
     {
@@ -9,7 +9,7 @@
       "destination": "/assets/$1"
     },
     {
-      "source": "/((?!assets|\\.well-known|icon-|manifest\\.json|sw\\.js|logo\\.svg|apple-touch-icon|robots\\.txt).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
