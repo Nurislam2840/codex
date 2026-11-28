@@ -357,3 +357,18 @@ body, html, #root {
   border-radius: 12px; color: var(--text-primary); font-size: 0.9rem; cursor: pointer;
 }
 .theme-chip.active { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+
+
+/* ===== Mobile selection bar ===== */
+.select-bar {
+  display: flex; gap: 6px; padding: 6px 8px; overflow-x: auto;
+  background: var(--bg-surface); border-top: 1px solid var(--border-color);
+}
+.select-bar button {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 4px;
+  padding: 6px 12px; background: var(--bg-elevated); border: 1px solid var(--border-color);
+  border-radius: 8px; color: var(--text-primary); font-size: 0.8rem; cursor: pointer;
+}
+.select-bar button.active { border-color: var(--accent); color: var(--accent); }
+.select-bar button:disabled { opacity: 0.4; }
+.select-bar button:active:not(:disabled) { transform: scale(0.96); }

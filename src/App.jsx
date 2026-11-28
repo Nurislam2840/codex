@@ -277,6 +277,9 @@ function App() {
   const searchTimerRef = useRef(null);
   const savedIndicatorTimerRef = useRef(null);
   const toastTimerRef = useRef(null);
+  const selectionModeRef = useRef(false);
+  const selectionAnchorRef = useRef(null);
+  const [selectionMode, setSelectionMode] = useState(false);
   const [toastMsg, setToastMsg] = useState('');
   const showToast = (msg) => {
     setToastMsg(msg);
@@ -504,10 +507,16 @@ function App() {
     });
   };
 
+  const getSelectedText = () => {
+    const ed = editorRef.current; if (!ed) return '';
+    const sel = ed.getSelection(); const model = ed.getModel();
+    return sel && !sel.isEmpty() && model ? model.getValueInRange(sel) : '';
+  };
+
   const handleCut = async () => {
-    if (contextMenu.selectionText) {
+    if (getSelectedText()) {
       try {
-        await navigator.clipboard.writeText(contextMenu.selectionText);
+        await navigator.clipboard.writeText(getSelectedText());
         if (editorRef.current) editorRef.current.executeEdits('', [{ range: editorRef.current.getSelection(), text: '' }]);
         showToast('কাট হয়েছে ✓');
       } catch { showCustomAlert('danger', 'Cut failed', 'Clipboard denied.'); }
@@ -516,8 +525,8 @@ function App() {
   };
 
   const handleCopy = async () => {
-    if (contextMenu.selectionText) {
-      try { await navigator.clipboard.writeText(contextMenu.selectionText); showToast('কপি হয়েছে ✓'); }
+    if (getSelectedText()) {
+      try { await navigator.clipboard.writeText(getSelectedText()); showToast('কপি হয়েছে ✓'); }
       catch { showCustomAlert('danger', 'Copy failed', 'Clipboard denied.'); }
     }
     setContextMenu(c => ({ ...c, visible: false }));
@@ -703,6 +712,19 @@ function App() {
 });
     
     registerJavaLanguage(monaco);
+    editor.onMouseDown((e) => {
+      if (!selectionModeRef.current) return;
+      const pos = e.target.position; if (!pos) return;
+      if (!selectionAnchorRef.current) {
+        selectionAnchorRef.current = pos;
+        editor.setPosition(pos);
+        return;
+      }
+      const a = selectionAnchorRef.current;
+      selectionAnchorRef.current = null;
+      editor.setSelection(safeRange(a.lineNumber, a.column, pos.lineNumber, pos.column));
+    });
+
     editor.onDidChangeCursorPosition((e) => setCursorPos({ line: e.position.lineNumber, col: e.position.column }));
     editor.onDidChangeCursorSelection((e) => {
       const model = editor.getModel(); if (!model) return;
@@ -744,6 +766,28 @@ function App() {
   }, []);
 
   const isLight = THEME_OPTIONS.find(t => t.id === theme)?.light ?? false;
+  const toggleSelectMode = () => {
+    const next = !selectionModeRef.current;
+    selectionModeRef.current = next;
+    selectionAnchorRef.current = null;
+    setSelectionMode(next);
+    keepFocus();
+  };
+
+  const selectCurrentLine = () => {
+    const ed = editorRef.current; const model = ed?.getModel(); const pos = ed?.getPosition();
+    if (!model || !pos) return;
+    ed.setSelection(safeRange(pos.lineNumber, 1, pos.lineNumber, model.getLineMaxColumn(pos.lineNumber)));
+    keepFocus();
+  };
+
+  const clearSelection = () => {
+    const ed = editorRef.current; const pos = ed?.getPosition();
+    selectionAnchorRef.current = null;
+    if (pos) ed.setPosition(pos);
+    keepFocus();
+  };
+
   const handleZenToggle = () => setZenMode(z => !z);
   const previewWidth = previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%';
 
@@ -860,6 +904,13 @@ function App() {
                     <button onClick={handleMobileTab}>Tab</button>
                     <button onClick={handleMobileEnter}><FiCornerDownLeft /></button>
                     <button onClick={handleMobileDelete} className="delete-btn"><FiDelete /></button>
+                  </div>
+                  <div className="select-bar">
+                    <button className={selectionMode ? 'active' : ''} onClick={toggleSelectMode}>{selectionMode ? 'Selecting…' : 'Select'}</button>
+                    <button onClick={selectCurrentLine}>Line</button>
+                    <button onClick={handleSelectAll}>All</button>
+                    <button onClick={handleCopy} disabled={selectionInfo.count === 0}><FiCopy size={14} /> Copy</button>
+                    <button onClick={clearSelection} disabled={selectionInfo.count === 0}>Clear</button>
                   </div>
                   <div className="snippet-bar">
                     {['()', '{}', '[]', '""', "''", ';', '=>', '${}', '/* */', '//', '<>', '</>'].map(s => (
@@ -986,12 +1037,12 @@ function App() {
         <>
           <div className="ctx-backdrop" onClick={() => setContextMenu(c => ({ ...c, visible: false }))} onContextMenu={(e) => { e.preventDefault(); setContextMenu(c => ({ ...c, visible: false })); }} />
           <div className="ctx-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={e => e.stopPropagation()}>
-            <button disabled={!contextMenu.hasSelection} onClick={handleCut}><FiScissors size={15} /> Cut <kbd>Ctrl+X</kbd></button>
-            <button disabled={!contextMenu.hasSelection} onClick={handleCopy}><FiCopy size={15} /> Copy <kbd>Ctrl+C</kbd></button>
+            <button disabled={selectionInfo.count === 0} onClick={handleCut}><FiScissors size={15} /> Cut <kbd>Ctrl+X</kbd></button>
+            <button disabled={selectionInfo.count === 0} onClick={handleCopy}><FiCopy size={15} /> Copy <kbd>Ctrl+C</kbd></button>
             <button onClick={handlePaste}><FiClipboard size={15} /> Paste <kbd>Ctrl+V</kbd></button>
             <div className="ctx-sep" />
             <button onClick={handleSelectAll}><FiAlignLeft size={15} /> Select All <kbd>Ctrl+A</kbd></button>
-            <button disabled={!contextMenu.hasSelection} className="danger" onClick={handleDeleteSelection}><FiTrash2 size={15} /> Delete</button>
+            <button disabled={selectionInfo.count === 0} className="danger" onClick={handleDeleteSelection}><FiTrash2 size={15} /> Delete</button>
           </div>
         </>
       )}
@@ -1003,7 +1054,7 @@ function App() {
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.1.2<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.1.4<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
