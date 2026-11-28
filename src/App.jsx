@@ -20,6 +20,179 @@ const FONT_MIN = 12;
 const FONT_MAX = 24;
 const DEFAULT_FONT = 14;
 
+const THEME_OPTIONS = [
+  { id: 'tech-dark', label: 'Tech Dark', light: false },
+  { id: 'midnight-luxe', label: 'Midnight Luxe', light: false },
+  { id: 'vs-light', label: 'Light', light: true },
+  { id: 'pearl-ivory', label: 'Pearl Ivory', light: true },
+];
+
+// ---------- Java কাস্টম Monarch টোকেনাইজার ----------
+// প্রতিটি টোকেন ধরন আলাদা নাম পায়, যাতে থিমে আলাদা রং দেওয়া যায়:
+//   keyword.package   -> package, import
+//   keyword.modifier  -> public, private, static, final ...
+//   keyword.control   -> if, else, for, while, return, try ...
+//   keyword           -> class, interface, new, this, void ...
+//   type.primitive    -> int, boolean, double ...
+//   type.identifier   -> String, ArrayList (বড় হাতের অক্ষরে শুরু)
+//   function          -> printData( এর মতো মেথড নাম
+//   annotation        -> @Override
+//   constant          -> true, false, null
+const JAVA_MONARCH = {
+  defaultToken: '',
+  tokenPostfix: '.java',
+  packageKw: ['package', 'import'],
+  modifiers: ['public', 'private', 'protected', 'static', 'final', 'abstract', 'synchronized', 'volatile', 'transient', 'native', 'strictfp', 'sealed', 'non-sealed', 'permits', 'default'],
+  controlKw: ['if', 'else', 'switch', 'case', 'for', 'while', 'do', 'break', 'continue', 'return', 'try', 'catch', 'finally', 'throw', 'throws', 'yield', 'when', 'assert'],
+  declKw: ['class', 'interface', 'enum', 'record', 'extends', 'implements', 'new', 'this', 'super', 'instanceof', 'void', 'var'],
+  primitives: ['boolean', 'byte', 'char', 'double', 'float', 'int', 'long', 'short'],
+  constants: ['true', 'false', 'null'],
+  tokenizer: {
+    root: [
+      // মেথড কল/ডিক্লারেশন (নাম + '('): আগে কীওয়ার্ড কিনা দেখে নেয়
+      [/[a-z_$][\w$]*(?=\s*\()/, {
+        cases: {
+          '@controlKw': 'keyword.control',
+          '@modifiers': 'keyword.modifier',
+          '@declKw': 'keyword',
+          '@default': 'function',
+        },
+      }],
+      // বড় হাতের অক্ষরে শুরু = ক্লাস/টাইপ
+      [/[A-Z][\w$]*/, 'type.identifier'],
+      // সাধারণ লোয়ারকেস শব্দ: কীওয়ার্ড হলে ক্যাটাগরি, নাহলে ভেরিয়েবল
+      [/[a-z_$][\w$]*/, {
+        cases: {
+          '@packageKw': 'keyword.package',
+          '@modifiers': 'keyword.modifier',
+          '@controlKw': 'keyword.control',
+          '@declKw': 'keyword',
+          '@primitives': 'type.primitive',
+          '@constants': 'constant',
+          '@default': 'identifier',
+        },
+      }],
+      [/@[a-zA-Z_$][\w$]*/, 'annotation'],
+      [/\/\*\*/, 'comment.doc', '@javadoc'],
+      [/\/\*/, 'comment', '@comment'],
+      [/\/\/.*$/, 'comment'],
+      [/"""/, 'string', '@textblock'],
+      [/"/, 'string', '@string'],
+      [/'(\\.|[^'\\])'/, 'string'],
+      [/0[xX][0-9a-fA-F_]+[lL]?/, 'number.hex'],
+      [/\d*\.\d+([eE][-+]?\d+)?[fFdD]?/, 'number.float'],
+      [/\d+[lLfFdD]?/, 'number'],
+      [/[{}()\[\]]/, 'delimiter.bracket'],
+      [/[;,.]/, 'delimiter'],
+      [/[+\-*\/%&|^!<>=?:~]+/, 'operator'],
+      [/\s+/, 'white'],
+    ],
+    string: [
+      [/[^\\"]+/, 'string'],
+      [/\\./, 'string.escape'],
+      [/"/, 'string', '@pop'],
+    ],
+    textblock: [
+      [/[^\\"]+/, 'string'],
+      [/\\./, 'string.escape'],
+      [/"""/, 'string', '@pop'],
+      [/"/, 'string'],
+    ],
+    comment: [
+      [/[^\/*]+/, 'comment'],
+      [/\*\//, 'comment', '@pop'],
+      [/[\/*]/, 'comment'],
+    ],
+    javadoc: [
+      [/[^\/*]+/, 'comment.doc'],
+      [/\*\//, 'comment.doc', '@pop'],
+      [/[\/*]/, 'comment.doc'],
+    ],
+  },
+};
+
+// Monaco-র ডিফল্ট Java টোকেনাইজার বদলে কাস্টমটি বসানো
+const registerJavaLanguage = (monaco) => {
+  monaco.languages.setMonarchTokensProvider('java', JAVA_MONARCH);
+};
+
+// প্রতিটি টোকেন ধরনের জন্য রং (থিম অনুযায়ী)
+const makeRules = (p) => [
+  { token: '', foreground: p.text },
+  { token: 'comment', foreground: p.comment, fontStyle: 'italic' },
+  { token: 'comment.doc', foreground: p.comment, fontStyle: 'italic' },
+  { token: 'keyword.package', foreground: p.pkg, fontStyle: 'bold' },
+  { token: 'keyword.modifier', foreground: p.modifier },
+  { token: 'keyword.control', foreground: p.control },
+  { token: 'keyword', foreground: p.klass },
+  { token: 'type.primitive', foreground: p.datatype },
+  { token: 'type.identifier', foreground: p.klass },
+  { token: 'function', foreground: p.method },
+  { token: 'annotation', foreground: p.annotation },
+  { token: 'string', foreground: p.string },
+  { token: 'string.escape', foreground: p.number },
+  { token: 'number', foreground: p.number },
+  { token: 'number.float', foreground: p.number },
+  { token: 'number.hex', foreground: p.number },
+  { token: 'constant', foreground: p.number },
+  { token: 'identifier', foreground: p.text },
+  { token: 'delimiter', foreground: p.text },
+  { token: 'delimiter.bracket', foreground: p.text },
+  { token: 'operator', foreground: p.text },
+  { token: 'tag', foreground: p.control },
+  { token: 'attribute.name', foreground: p.klass },
+  { token: 'attribute.value', foreground: p.string },
+];
+
+const PREMIUM_THEMES = {
+  'midnight-luxe': {
+    base: 'vs-dark',
+    rules: makeRules({
+      text: 'C0CAF5', comment: '565F89', pkg: '7DCFFF', klass: '2AC3DE', control: 'BB9AF7',
+      modifier: '9ECE6A', datatype: 'FF9E64', method: '7AA2F7', annotation: 'E0AF68',
+      string: '9ECE6A', number: 'FF9E64',
+    }),
+    colors: {
+      'editor.background': '#1A1B26',
+      'editorGutter.background': '#16161E',
+      'editor.foreground': '#C0CAF5',
+      'editor.lineHighlightBackground': '#24283B',
+      'editor.lineHighlightBorder': '#24283B00',
+      'editor.selectionBackground': '#364A82',
+      'editor.inactiveSelectionBackground': '#2E3C64',
+      'editorCursor.foreground': '#C0CAF5',
+      'editorLineNumber.foreground': '#3B4261',
+      'editorLineNumber.activeForeground': '#7AA2F7',
+      'editorIndentGuide.background': '#2A2E42',
+      'editorIndentGuide.activeBackground': '#3B4261',
+    },
+  },
+  'pearl-ivory': {
+    base: 'vs',
+    rules: makeRules({
+      text: '2E3440', comment: '7C8593', pkg: '0B6E99', klass: '136F63', control: '7C3AED',
+      modifier: 'B42318', datatype: 'B45309', method: '1D4ED8', annotation: 'A16207',
+      string: '15803D', number: 'C2410C',
+    }),
+    colors: {
+      'editor.background': '#FAFAF7',
+      'editorGutter.background': '#F0EFEA',
+      'editor.foreground': '#2E3440',
+      'editor.lineHighlightBackground': '#EEF2F8',
+      'editor.lineHighlightBorder': '#EEF2F800',
+      'editor.selectionBackground': '#D5E3F7',
+      'editor.inactiveSelectionBackground': '#E4ECF7',
+      'editorCursor.foreground': '#2E3440',
+      'editorLineNumber.foreground': '#A3A8B3',
+      'editorLineNumber.activeForeground': '#2E3440',
+      'editorIndentGuide.background': '#E2E0D8',
+      'editorIndentGuide.activeBackground': '#C9C6BA',
+    },
+  },
+};
+
+// কপি/কাট/পেস্টের টোস্ট বার্তা
+
 const getFileIcon = (name) => {
   const n = name.toLowerCase();
   if (n.endsWith('.html') || n.endsWith('.htm')) return '🟧';
@@ -103,6 +276,13 @@ function App() {
   const saveTimerRef = useRef(null);
   const searchTimerRef = useRef(null);
   const savedIndicatorTimerRef = useRef(null);
+  const toastTimerRef = useRef(null);
+  const [toastMsg, setToastMsg] = useState('');
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setToastMsg(''), 1400);
+  };
 
   const showCustomAlert = useCallback((type, title, message, isPrompt = false, onConfirm = null, defaultValue = '') => {
     setAlertConfig({ visible: true, type, title, message, isPrompt, inputValue: defaultValue, onConfirm });
@@ -329,6 +509,7 @@ function App() {
       try {
         await navigator.clipboard.writeText(contextMenu.selectionText);
         if (editorRef.current) editorRef.current.executeEdits('', [{ range: editorRef.current.getSelection(), text: '' }]);
+        showToast('কাট হয়েছে ✓');
       } catch { showCustomAlert('danger', 'Cut failed', 'Clipboard denied.'); }
     }
     setContextMenu(c => ({ ...c, visible: false }));
@@ -336,7 +517,7 @@ function App() {
 
   const handleCopy = async () => {
     if (contextMenu.selectionText) {
-      try { await navigator.clipboard.writeText(contextMenu.selectionText); showCustomAlert('success', 'Copied!', 'Text copied.'); }
+      try { await navigator.clipboard.writeText(contextMenu.selectionText); showToast('কপি হয়েছে ✓'); }
       catch { showCustomAlert('danger', 'Copy failed', 'Clipboard denied.'); }
     }
     setContextMenu(c => ({ ...c, visible: false }));
@@ -346,6 +527,7 @@ function App() {
     try {
       const text = await navigator.clipboard.readText();
       if (editorRef.current) editorRef.current.executeEdits('', [{ range: editorRef.current.getSelection(), text }]);
+      showToast('পেস্ট হয়েছে ✓');
     } catch { showCustomAlert('danger', 'Paste Failed', 'Allow clipboard access.'); }
     setContextMenu(c => ({ ...c, visible: false }));
   };
@@ -415,6 +597,13 @@ function App() {
     if (!editorRef.current) return;
     editorRef.current.executeEdits('', [{ range: editorRef.current.getSelection(), text, forceMoveMarkers: true }]);
     keepFocus();
+  };
+
+  const handleBeforeMount = (monaco) => {
+    registerJavaLanguage(monaco);
+    Object.entries(PREMIUM_THEMES).forEach(([name, t]) => {
+      monaco.editor.defineTheme(name, { base: t.base, inherit: true, rules: t.rules, colors: t.colors });
+    });
   };
 
   const handleEditorDidMount = (editor, monaco) => {
@@ -513,6 +702,7 @@ function App() {
   }
 });
     
+    registerJavaLanguage(monaco);
     editor.onDidChangeCursorPosition((e) => setCursorPos({ line: e.position.lineNumber, col: e.position.column }));
     editor.onDidChangeCursorSelection((e) => {
       const model = editor.getModel(); if (!model) return;
@@ -553,6 +743,7 @@ function App() {
     return () => window.removeEventListener('message', handleMessage);
   }, []);
 
+  const isLight = THEME_OPTIONS.find(t => t.id === theme)?.light ?? false;
   const handleZenToggle = () => setZenMode(z => !z);
   const previewWidth = previewDevice === 'mobile' ? '375px' : previewDevice === 'tablet' ? '768px' : '100%';
 
@@ -580,7 +771,7 @@ function App() {
   const filteredLogs = consoleLogs.filter(l => logFilter === 'all' || l.level === logFilter);
 
   return (
-    <div className={`app-container ${theme === 'vs-light' ? 'light-mode' : ''} ${zenMode ? 'zen-mode' : ''}`}>
+    <div className={`app-container ${isLight ? 'light-mode' : ''} ${zenMode ? 'zen-mode' : ''}`}>
       
       {!zenMode && (
         <header className="top-bar">
@@ -595,8 +786,8 @@ function App() {
             <button className="icon-btn" onClick={() => setFontSize(s => Math.max(FONT_MIN, s - 1))} title="Decrease Font"><FiMinus size={18} /></button>
             <button className="icon-btn" onClick={() => setFontSize(s => Math.min(FONT_MAX, s + 1))} title="Increase Font"><FiPlusCircle size={18} /></button>
             
-            <button className="icon-btn" onClick={() => setTheme(theme === 'tech-dark' ? 'vs-light' : 'tech-dark')} title="Toggle Theme">
-              {theme === 'tech-dark' ? <FiSun size={20} /> : <FiMoon size={20} />}
+            <button className="icon-btn" onClick={() => setTheme(isLight ? 'tech-dark' : 'vs-light')} title="Toggle Theme">
+              {isLight ? <FiMoon size={20} /> : <FiSun size={20} />}
             </button>
             
             <button className="icon-btn" onClick={() => { setShowPreview(!showPreview); setConsoleLogs([]); }}><FiPlay size={20} /></button>
@@ -656,7 +847,7 @@ function App() {
                 </div>
               )}
               <div className="editor-wrapper">
-                <Editor height="100%" language={activeFile.language} value={activeFile.content} onChange={handleCodeChange} theme={theme} onMount={handleEditorDidMount} options={{
+                <Editor height="100%" language={activeFile.language} value={activeFile.content} onChange={handleCodeChange} theme={theme} beforeMount={handleBeforeMount} onMount={handleEditorDidMount} options={{
                   fontSize, lineHeight: 1.6, fontFamily: "'JetBrains Mono', 'Fira Code', monospace", minimap: { enabled: false }, wordWrap: 'off', automaticLayout: true, lineNumbers: 'on', formatOnPaste: false, formatOnType: false, autoIndent: 'keep', tabSize: 4, readOnly: false, mouseWheelZoom: true, contextmenu: false, selectOnLineNumbers: true, selectionHighlight: true, cursorBlinking: 'smooth', quickSuggestions: true, suggestOnTriggerCharacters: true, acceptSuggestionOnEnter: 'on', colorDecorators: true, matchBrackets: 'always', autoClosingBrackets: 'languageDefined', autoClosingQuotes: 'languageDefined', scrollBeyondLastLine: false, padding: { top: 8, bottom: 120 }, fixedOverflowWidgets: true, bracketPairColorization: { enabled: true }, guides: { bracketPairs: true, indentation: true }, renderLineHighlight: 'all', renderWhitespace: 'selection', find: { addExtraSpaceOnTop: false, autoFindInSelection: 'never', seedSearchStringFromSelection: 'always' }, snippetSuggestions: 'inline', tabCompletion: 'on', "semanticHighlighting.enabled": true,
                 }} />
               </div>
@@ -740,7 +931,14 @@ function App() {
             <div className="modal-body">
               <button className="menu-btn" onClick={() => { setShowCommandPalette(true); setShowSettings(false); }}><FiCommand /> Command Palette</button>
               <button className="menu-btn" onClick={() => { setShowShortcuts(true); setShowSettings(false); }}><FiInfo /> Keyboard Shortcuts</button>
-              <button className="menu-btn" onClick={() => { setTheme(theme === 'tech-dark' ? 'vs-light' : 'tech-dark'); setShowSettings(false); }}>{theme === 'tech-dark' ? <FiSun /> : <FiMoon />} Toggle Theme</button>
+              <div className="theme-picker">
+                <label>Theme</label>
+                <div className="theme-grid">
+                  {THEME_OPTIONS.map(t => (
+                    <button key={t.id} className={`theme-chip ${theme === t.id ? 'active' : ''}`} onClick={() => { setTheme(t.id); setShowSettings(false); }}>{t.label}</button>
+                  ))}
+                </div>
+              </div>
               <button className="menu-btn" onClick={() => { handleZenToggle(); setShowSettings(false); }}><FiMaximize2 /> Zen Mode</button>
               <div className="setting-item">
                 <label>Font Size: {fontSize}px</label>
@@ -784,12 +982,28 @@ function App() {
         </div>
       )}
 
+      {contextMenu.visible && (
+        <>
+          <div className="ctx-backdrop" onClick={() => setContextMenu(c => ({ ...c, visible: false }))} onContextMenu={(e) => { e.preventDefault(); setContextMenu(c => ({ ...c, visible: false })); }} />
+          <div className="ctx-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={e => e.stopPropagation()}>
+            <button disabled={!contextMenu.hasSelection} onClick={handleCut}><FiScissors size={15} /> Cut <kbd>Ctrl+X</kbd></button>
+            <button disabled={!contextMenu.hasSelection} onClick={handleCopy}><FiCopy size={15} /> Copy <kbd>Ctrl+C</kbd></button>
+            <button onClick={handlePaste}><FiClipboard size={15} /> Paste <kbd>Ctrl+V</kbd></button>
+            <div className="ctx-sep" />
+            <button onClick={handleSelectAll}><FiAlignLeft size={15} /> Select All <kbd>Ctrl+A</kbd></button>
+            <button disabled={!contextMenu.hasSelection} className="danger" onClick={handleDeleteSelection}><FiTrash2 size={15} /> Delete</button>
+          </div>
+        </>
+      )}
+
+      {toastMsg && <div className="copy-toast">{toastMsg}</div>}
+
       {showAbout && (
         <div className="modal-overlay" onClick={() => setShowAbout(false)}>
           <div className="custom-alert-box" onClick={e => e.stopPropagation()}>
             <FiCode size={48} color="#58A6FF" style={{ marginBottom: 16 }} />
             <h3>CodeX Premium Editor</h3>
-            <p style={{ marginBottom: 24 }}>Version 1.1.0<br/>A powerful offline PWA code editor.</p>
+            <p style={{ marginBottom: 24 }}>Version 1.1.2<br/>A powerful offline PWA code editor.</p>
             <button className="alert-btn confirm" onClick={() => setShowAbout(false)}>Close</button>
           </div>
         </div>
